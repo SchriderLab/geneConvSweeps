@@ -8,7 +8,7 @@ outDir = "slimOutput"
 partitionName = "general" #replace if you want to run the slurm job on a different partition
 
 
-#modify this function ass needed to use your HPC scheduler and resources
+#modify this function as needed to use your HPC scheduler and resources
 def runCmdAsJobWithoutWaitingWithLog(cmd, jobName, launchFile, wallTime, qName, mbMem, logFile):
     """Run the command specified in cmd using the slurm scheduler"""
     with open(launchFile,"w") as f:

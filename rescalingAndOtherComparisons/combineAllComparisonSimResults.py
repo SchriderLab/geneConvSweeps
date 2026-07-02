@@ -3,28 +3,26 @@ import sys
 import math
 import ast
 
-pySimDir = "twoLocusPySims"
+pySimDir = "twoLocusPySimsForComparison"
 
 outDir = pySimDir + "/simOut"
 combinedDir = pySimDir + "/simOutCombined"
 
 os.system(f"mkdir -p {combinedDir}")
 
-numReps = 100
-N=1000000
-Q=100
+N=10000
+Q=10
 paramCombs = []
 
-for s in [0.001, 0.01, 0.1]:
+for s in [0.1]:
     for h in [0.0, 0.5, 1.0]:
-        for gcScalar in [0, 1, 5, 10, 50]:
+        for gcScalar in [10]:
             recRateScalar=0
             paramCombs.append((N, gcScalar, recRateScalar, s, h, Q))
 
-        #for recRateScalar in [1, 10, 100, 1000]:
-        for recRateScalar in [1, 5, 10, 50]:
-            gcScalar=0
-            paramCombs.append((N, gcScalar, recRateScalar, s, h, Q))
+        #for recRateScalar in [1, 5, 10, 50]:
+        #    gcScalar=0
+        #    paramCombs.append((N, gcScalar, recRateScalar, s, h, Q))
 
 
 
@@ -105,37 +103,26 @@ def readResFile(filePath):
 
 def combineResultsFilesWithPrefix(outDir, prefix):
     fnames = getFileNamesWithPrefix(outDir, prefix)
+    totReps = 0
     resTots = [0]*11
     denoms = [0]*11
     softOnlyIndices = [3, 4, 5, 6, 9, 10]
-    skip = False
-
     for fname in fnames:
-        try:
-            res = readResFile(outDir + "/" + fname)
-        except Exception:
-            skip = True
-            sys.stderr.write(f"skipping {fname} which is incomplete\n")
-
-        if not skip:
-            nReps = res[0]
-            for i in range(1, len(res)):
-                if i in softOnlyIndices:
-                    if not math.isnan(res[i]):
-                        softFrac = res[2 - (i % 2)]
-                        nSoft = softFrac*nReps
-                        denoms[i-1] += nSoft
-                        resTots[i-1] += res[i]*nSoft
-                else:
-                    resTots[i-1] += res[i]*nReps
-                    denoms[i-1] += nReps
-
+        res = readResFile(outDir + "/" + fname)
+        nReps = res[0]
+        for i in range(1, len(res)):
+            if i in softOnlyIndices:
+                if not math.isnan(res[i]):
+                    softFrac = res[2 - (i % 2)]
+                    nSoft = softFrac*nReps
+                    denoms[i-1] += nSoft
+                    resTots[i-1] += res[i]*nSoft
+            else:
+                resTots[i-1] += res[i]*nReps
+                denoms[i-1] += nReps
+        totReps += nReps
     for i in range(len(resTots)):
-        if denoms[i] == 0:
-            resTots[i] = 'NA'
-        else:
-            resTots[i] /= denoms[i]
-
+        resTots[i] /= denoms[i]
     outLines=[]
     outLines.append(f"fraction of soft sweeps in pop: {resTots[0]}; fraction of soft sweeps in sample: {resTots[1]}")
     outLines.append(f"avg pop h2/h1 of soft sweeps: {resTots[2]}; avg sample h2/h1 of soft sweeps: {resTots[3]}")
@@ -145,7 +132,6 @@ def combineResultsFilesWithPrefix(outDir, prefix):
     outLines.append(f"avg number of gene conversion events per replicate: {resTots[10]}")
 
     return outLines
-
 
 
 

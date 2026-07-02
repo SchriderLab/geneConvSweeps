@@ -1,21 +1,6 @@
 import os
 import runCmdAsJob
 
-#modify this function as needed to use your HPC scheduler and resources
-def runCmdAsJobWithoutWaitingWithLog(cmd, jobName, launchFile, wallTime, qName, mbMem, logFile):
-    """Run the command specified in cmd using the slurm scheduler"""
-    with open(launchFile,"w") as f:
-        f.write("#!/bin/bash\n")
-        f.write("#SBATCH --job-name=%s\n" %(jobName))
-        f.write("#SBATCH --time=%s\n" %(wallTime))
-        f.write("#SBATCH --partition=%s\n" %(qName))
-        f.write("#SBATCH --output=%s\n" %(logFile))
-        f.write("#SBATCH --mem=%s\n" %(mbMem))
-        f.write("#SBATCH --requeue\n")
-        f.write("#SBATCH --export=ALL\n")
-        f.write("\n%s\n" %(cmd))
-    os.system("sbatch %s" %(launchFile))
-
 pySimDir = "twoLocusPySims"
 mode = "all"
 
@@ -39,6 +24,7 @@ for s in [0.001, 0.01, 0.1]:
             gcScalar=0
             paramCombs.append((N, gcScalar, recRateScalar, s, h, Q))
 
+
 intermedPrefixes = {}
 intermedPrefixes['twoLocusSim_0_0_0.01_0.0_100'] = 1
 intermedPrefixes['twoLocusSim_1_0_0.01_0.0_100'] = 1
@@ -49,28 +35,35 @@ intermedPrefixes['twoLocusSim_0_5_0.01_0.0_100'] = 1
 intermedPrefixes['twoLocusSim_0_10_0.01_0.0_100'] = 1
 intermedPrefixes['twoLocusSim_0_0_0.01_1.0_100'] = 1
 
+
 for paramComb in paramCombs:
     N, gcScalar, recMutScalar, s, h, Q = paramComb
 
+    totalGcRate = gcScalar*5e-06
+    totalRecMutRate = recMutScalar*1e-08
+
     jobName="twoLocusSim"
     launchFile="twoLocusSim.slurm"
-    wallTime="10-00:00:00"
+    wallTime="5-00:00:00"
     qName="general"
     mbMem="8G"
 
+    isInterMed = False
     prefix = f"twoLocusSim_{gcScalar}_{recMutScalar}_{s}_{h}_{Q}"
-    if s == 0.001 and h in [0.0, 1.0]:
+    if (s == 0.001 and h in [0.0, 1.0]) or (prefix == "twoLocusSim_50_0_0.01_0.0_100"):
         repsPerBatch = 1
         numBatches = int(numReps/repsPerBatch)
     elif prefix in intermedPrefixes:
         numBatches = 20
         repsPerBatch = int(numReps/numBatches)
+        isInterMed = True
     else:
         numBatches = 1
         repsPerBatch = numReps
 
     for i in range(numBatches):
         outFile = f"{outDir}/{prefix}_batch_{i}.out"
-        cmd = f"python -u simTestRecMut.py {N} {gcScalar} {recMutScalar} {s} {h} {Q} {repsPerBatch} > {outFile}"
+        cmd = f"python -u simTestRecMut.py {N} {totalGcRate} {totalRecMutRate} {s} {h} {Q} {repsPerBatch} > {outFile}"
         logFile = f"{logDir}/{prefix}_batch_{i}.log"
-        runCmdAsJobWithoutWaitingWithLog(cmd, jobName, launchFile, wallTime, qName, mbMem, logFile)
+        if mode == "all" or (mode == "interMedOnly" and isInterMed):
+            runCmdAsJob.runCmdAsJobWithoutWaitingWithLog(cmd, jobName, launchFile, wallTime, qName, mbMem, logFile)

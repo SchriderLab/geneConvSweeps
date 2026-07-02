@@ -1,6 +1,6 @@
 # Code for misc tests of simualtion accoracy (rescaling, and comparison between SLiM and my custom Python simulator)
 
-This directory contains code for running two comparisons: 1) `SLiM` simulations of pseudo-soft sweeps with different values of the rescaling coefficient (Q), 2) comparing the results between SLiM and the custom Python simulation code found in the ../hapFreqSims directory.
+This directory contains code for running two comparisons: 1) `SLiM` simulations of pseudo-soft sweeps with different values of the rescaling coefficient (Q), 2) comparing the results between SLiM and the custom Python simulation code found in the [hapFreqSims](../hapFreqSims) directory.
 
 ## Contents
 

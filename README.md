@@ -23,3 +23,6 @@ The `softness_analysis.ipynb` notebook contains the code that reads in the simul
 
 ## Python simulations for tracking frequencies of distinct haplotypes during the sweep and other misc analyses
 The [hapFreqSims](hapFreqSims) directory contains the code for performing and analyzing the simulations that record the frequencies of distinct haplotypes created by gene conversion or recurrent mutation during a sweep. Code for additional analysis can be found in [rescalingAndOtherComparisons](rescalingAndOtherComparisons) directory.
+
+## Release
+I may or may not continue to update this repo. If you want to see the state of the repo at the time that the corresponding paper was accepted for publication, see https://doi.org/10.5281/zenodo.21924957
